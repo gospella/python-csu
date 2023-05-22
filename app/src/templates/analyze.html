@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8"/>
+    <title>METANIT.COM</title>
+    <style>
+        td {
+            padding: 5px;
+        }
+
+        button {
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+<h2>Enter comment</h2>
+<div>
+    <p><textarea id="comment" rows="10" cols="45" name="text"></textarea></p>
+    <p>
+        <button id="saveBtn">Analyze</button>
+        <button id="resetBtn">Restart</button>
+    </p>
+</div>
+
+<h2>Last 5 result</h2>
+<table>
+    <thead>
+    <tr>
+        <th>Comment</th>
+        <th>Sentiment</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+
+<script>
+    // Получение последних результатов
+    async function getLastResults() {
+        // отправляет запрос и получаем ответ
+        const response = await fetch("/api/results?limit=" + 5, {
+            method: "GET",
+            headers: {"Accept": "application/json"},
+        });
+        // если запрос прошел нормально
+        if (response.ok === true) {
+            // получаем данные
+            const results = await response.json();
+            const rows = document.querySelector("tbody");
+            // добавляем полученные элементы в таблицу
+            results.forEach(result => rows.append(row(result)));
+        }
+    }
+
+    // Отправка комментария на анализ
+    async function analyze(comment) {
+        const response = await fetch("/api/analyze?comment=" + comment, {
+            method: "POST",
+        });
+        if (response.ok === true) {
+            document.location.reload();
+        } else {
+            const error = await response.json();
+            console.log(error.message);
+        }
+    }
+
+    // сброс данных формы после отправки
+    function reset() {
+        document.getElementById("comment").value = "";
+    }
+
+    // создание строки для таблицы
+    function row(result) {
+
+        const tr = document.createElement("tr");
+        tr.setAttribute("data-rowid", result[0]);
+
+        var text = result[1]
+        if (text.length > 100) {
+            text = text.substr(0, 100) + '...'
+        }
+        const commentTd = document.createElement("td");
+        commentTd.append(text);
+        tr.append(commentTd);
+
+        const resultTd = document.createElement("td");
+        resultTd.append(result[2]);
+        tr.append(resultTd);
+
+        return tr;
+    }
+
+    // сброс значений формы
+    document.getElementById("resetBtn").addEventListener("click", () => reset());
+
+    // отправка формы
+    document.getElementById("saveBtn").addEventListener("click", async () => {
+        const comment = document.getElementById("comment").value;
+        await analyze(comment);
+        reset();
+    });
+
+    // загрузка
+    getLastResults();
+</script>
+</body>
+</html>

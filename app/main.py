@@ -1,38 +1,36 @@
 from fastapi import FastAPI, Request, Form, HTTPException, Depends
 from fastapi.responses import RedirectResponse, FileResponse
 from fastapi.templating import Jinja2Templates
-from sqlalchemy.orm import Session
+from starlette import status
 
-from src.models import *
-from db.crud import check_user_auth
-from db.session import get_db
+from db.crud import get_last_results
+from db.crud import save_result
+
+from dostoevsky.tokenization import RegexTokenizer
+from dostoevsky.models import FastTextSocialNetworkModel
 
 app = FastAPI()
 
 templates = Jinja2Templates(directory="src/templates")
 
+tokenizer = RegexTokenizer()
+model = FastTextSocialNetworkModel(tokenizer=tokenizer)
+
 
 @app.get("/")
 async def return_index():
-    return RedirectResponse("/login")
+    return FileResponse("src/templates/analyze.html")
 
 
-@app.get("/login")
-async def return_index():
-    return FileResponse("src/templates/login.html")
+@app.post('/api/analyze')
+def analyze(comment: str):
+    results = model.predict([comment], k=2)
+    save_result(comment, list(results[0].keys())[0])
+    return RedirectResponse(
+        '/',
+        status_code=status.HTTP_302_FOUND)
 
 
-@app.post("/form/")
-async def login(
-    request: Request,
-    username: str = Form(),
-    password: str = Form(),
-    db: Session = Depends(get_db),
-):
-    user = check_user_auth(db, username, password)
-    if not user:
-        raise HTTPException(status_code=403, detail="Incorrect login or password")
-
-    return templates.TemplateResponse(
-        "main.html", {"request": request, "name": user.name}
-    )
+@app.get("/api/results")
+def get_results(limit: int):
+    return get_last_results(limit)

@@ -1,10 +1,26 @@
-from sqlalchemy.orm import Session
-from db.models import UserInfo, User
+import os
+import mysql.connector
 
-def check_user_auth(db: Session, username: str, password: str):
-    return (
-        db.query(UserInfo)
-        .join(User, UserInfo.user_id == User.id)
-        .filter(User.username == username, User.password == password)
-        .one_or_none()
-    )
+db_config = {
+    'host': 'mysql_db',
+    'port': 3306,
+    'database': os.getenv('MYSQL_DATABASE'),
+    'user': os.getenv('MYSQL_USER'),
+    'password': os.getenv('MYSQL_PASSWORD')
+}
+
+
+def save_result(comment: str, result: str):
+    query = f"INSERT INTO sentiment_analysis (comment, result) VALUES ('{comment}', '{result}')"
+    with mysql.connector.connect(**db_config) as conn:
+        cursor = conn.cursor()
+        cursor.execute(query)
+        conn.commit()
+
+
+def get_last_results(limit: int):
+    query = f"SELECT * FROM sentiment_analysis ORDER BY created DESC LIMIT {limit}"
+    with mysql.connector.connect(**db_config) as conn:
+        cursor = conn.cursor()
+        cursor.execute(query)
+        return cursor.fetchall()
