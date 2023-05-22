@@ -1,0 +1,38 @@
+version: "3.6"
+services:
+  app:
+    restart: always
+    build:
+      context: .
+      dockerfile: ./DockerfileProd
+    volumes:
+      - ./app:/app
+    depends_on:
+      - mysql_db
+    env_file:
+      - .env
+    ports:
+      - "${SCENARIO_API_PORT}:8000"
+    networks:
+      - compose_network
+
+  mysql_db:
+    platform: linux/x86_64
+    image: mysql:5.7
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "${DB_PORT}:3306"
+    volumes:
+      - ./mysql/my-db:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d
+    networks:
+      - compose_network
+
+networks:
+  compose_network:
+
+
+volumes:
+  db-data:
