@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from typing import Optional, List
 from pydantic import BaseModel
 
@@ -21,3 +21,16 @@ class User(BaseModel):
 
 class UserResponse(BaseModel):
     id: str
+    
+
+class CreateUser(BaseModel):
+    name: str
+    surname: str
+    birthdate: Optional[date]
+    phone: Optional[int]
+    
+class UserDB(CreateUser):
+    id: int
+    created: datetime
+    class Config:
+        orm_mode = True
