@@ -5,3 +5,6 @@ CREATE TABLE sentiment_analysis (
     created DATETIME DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id)
 );
+
+ALTER TABLE sentiment_analysis
+CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

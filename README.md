@@ -2,8 +2,8 @@
 
 ## Установка:
 
-- `git clone https://gitlab.com/edu-ml-development-csu-2022/demonstration`
-- `cd demonstration`
+- `git clone https://github.com/gospella/python-csu.git`
+- `cd python-csu`
 
 Также [установите](https://docs.docker.com/compose/install/) docker и docker-compose
 
